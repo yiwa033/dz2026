@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { supabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 type ItemSummary = {
   settlement_amount: number | string | null;
   discounted_revenue: number | string | null;
