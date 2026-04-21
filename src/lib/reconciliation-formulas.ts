@@ -44,7 +44,7 @@ export function toNumber(value: NumericLike) {
 
 export function calculateRow(row: RowInput): RowResult {
   const backendRevenue = toNumber(row.backend_revenue);
-  const discountRate = toNumber(row.discount_rate);
+  const discountRate = normalizeRate(toNumber(row.discount_rate));
   const voucher = toNumber(row.voucher_amount);
   const freeTrial = toNumber(row.free_trial_amount);
   const refund = toNumber(row.refund_amount);

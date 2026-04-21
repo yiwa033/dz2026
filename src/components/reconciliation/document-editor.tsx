@@ -282,7 +282,7 @@ export function DocumentEditor({
         </div>
       </Card>
       <div className="text-xs text-slate-500">
-        提示：分成% 和税率% 支持输入 50 或 0.5，系统会自动标准化；金额字段统一保留 2 位小数。
+        提示：折扣系数、分成% 和税率% 支持输入 50 或 0.5，系统会自动标准化；金额字段统一保留 2 位小数。
       </div>
     </form>
   );
