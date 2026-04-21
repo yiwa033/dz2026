@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -68,6 +68,7 @@ export function DocumentEditor({
   initialData?: FormValues;
   documentId?: string;
 }) {
+  const [submitMode, setSubmitMode] = useState<"save" | "continue">("save");
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData ?? {
@@ -138,8 +139,19 @@ export function DocumentEditor({
     const id = json.data?.id ?? documentId;
     if (!id) return;
     const detailUrl = type === "rd" ? `/rd-reconciliation/${id}` : `/channel-reconciliation/${id}`;
-    if (!documentId) {
+    if (!documentId && submitMode === "save") {
       window.location.href = detailUrl;
+      return;
+    }
+    if (!documentId && submitMode === "continue") {
+      form.reset({
+        title: "",
+        statement_month: values.statement_month,
+        partner_name: values.partner_name,
+        remark: values.remark ?? "",
+        items: [{ ...emptyRow }]
+      });
+      alert("保存成功，已保留公共信息继续新增。");
       return;
     }
     alert("保存成功");
@@ -149,24 +161,7 @@ export function DocumentEditor({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
       <Card className="p-3">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-sm font-semibold">1）公共信息</div>
-          <div className="flex gap-2">
-            <Button type="submit">保存</Button>
-            {documentId ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => window.open(`/api/export?documentId=${documentId}`, "_blank")}
-              >
-                导出 Excel
-              </Button>
-            ) : null}
-            <Link href={listHref}>
-              <Button type="button" variant="outline">
-                返回列表
-              </Button>
-            </Link>
-          </div>
+          <div className="text-sm font-semibold text-slate-700">1）公共信息</div>
         </div>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           <Input placeholder="结算月份（如：2025年9月）" {...form.register("statement_month")} />
@@ -178,7 +173,7 @@ export function DocumentEditor({
 
       <Card className="p-3">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-sm font-semibold">2）游戏明细</div>
+          <div className="text-sm font-semibold text-slate-700">2）游戏明细（每行独立按公式计算结算金额）</div>
           <Button type="button" variant="outline" onClick={() => append({ ...emptyRow, sort_order: fields.length + 1 })}>
             + 新增一行游戏
           </Button>
@@ -208,7 +203,7 @@ export function DocumentEditor({
                 "结算额",
                 "操作"
               ].map((h) => (
-                <th key={h} className="border border-slate-200 px-2 py-2 text-left whitespace-nowrap">
+                <th key={h} className="border border-slate-200 px-2 py-2 text-left whitespace-nowrap text-slate-700">
                   {h}
                 </th>
               ))}
@@ -299,7 +294,7 @@ export function DocumentEditor({
         </div>
       </Card>
       <Card className="p-3">
-        <div className="mb-2 text-sm font-semibold">3）汇总</div>
+        <div className="mb-2 text-sm font-semibold text-slate-700">3）汇总</div>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
           <div className="rounded border border-slate-200 bg-slate-50 p-2">
             <div className="text-[11px] text-slate-500">原始后台流水合计</div>
@@ -319,6 +314,39 @@ export function DocumentEditor({
           </div>
         </div>
       </Card>
+      <Card className="p-3">
+        <div className="mb-2 text-sm font-semibold text-slate-700">备注与其它</div>
+        <Input placeholder="备注" {...form.register("remark")} />
+      </Card>
+      <div className="flex items-center justify-between px-1 pb-1">
+        <div className="text-sm font-semibold text-slate-700">预计结算金额 ¥{formatMoney(totals.settlement_amount)}</div>
+        <div className="flex gap-2">
+          <Link href={listHref}>
+            <Button type="button" variant="outline">
+              返回列表
+            </Button>
+          </Link>
+          {!documentId ? (
+            <Button
+              type="submit"
+              variant="outline"
+              onClick={() => {
+                setSubmitMode("continue");
+              }}
+            >
+              保存并继续新增
+            </Button>
+          ) : null}
+          <Button
+            type="submit"
+            onClick={() => {
+              setSubmitMode("save");
+            }}
+          >
+            保存
+          </Button>
+        </div>
+      </div>
     </form>
   );
 }
