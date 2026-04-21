@@ -72,7 +72,7 @@ export function calculateRow(row: RowInput): RowResult {
 }
 
 export function calculateSummary(rows: Array<Partial<RowInput & RowResult>>): SummaryResult {
-  return rows.reduce(
+  return rows.reduce<SummaryResult>(
     (acc, row) => {
       acc.backend_revenue = round2(acc.backend_revenue + toNumber(row.backend_revenue));
       acc.discounted_revenue = round2(acc.discounted_revenue + toNumber(row.discounted_revenue));
