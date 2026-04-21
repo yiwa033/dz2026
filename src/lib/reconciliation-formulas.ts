@@ -22,6 +22,15 @@ export interface RowResult {
   tax_rate: number;
 }
 
+export interface RdLegacyRowResult {
+  discounted_revenue: number;
+  billable_amount: number;
+  share_amount: number;
+  settlement_amount: number;
+  share_rate: number;
+  tax_rate: number;
+}
+
 export interface SummaryResult {
   backend_revenue: number;
   discounted_revenue: number;
@@ -89,6 +98,42 @@ export function calculateSummary(rows: Array<Partial<RowInput & RowResult>>): Su
       settlement_amount: 0
     }
   );
+}
+
+/**
+ * 旧项目研发对账真实口径（迁移自 h:/duizhang2025/src/domain/channel/channelBillingForm.js）
+ * - 折扣系数：空/非法/<=0 时按 1
+ * - 总流水 = 后台流水 * 折扣系数
+ * - 计费额 = 总流水 - 代金券 - 无忧试 - 玩家退款 - 测试费 - 福利币
+ * - 分成额 = 计费额 * (分成%/100)
+ * - 结算额 = 分成额 - 通道费 - 分成额*(税率%/100)
+ */
+export function calculateRdLegacyRow(row: RowInput): RdLegacyRowResult {
+  const flow = toNumber(row.backend_revenue);
+  const rawDiscount = Number(row.discount_rate);
+  const discountFactor = Number.isFinite(rawDiscount) && rawDiscount > 0 ? rawDiscount : 1;
+  const voucher = toNumber(row.voucher_amount);
+  const noWorry = toNumber(row.free_trial_amount);
+  const refund = toNumber(row.refund_amount);
+  const test = toNumber(row.test_fee);
+  const welfare = toNumber(row.welfare_coin);
+  const shareRate = toNumber(row.share_rate);
+  const taxRate = toNumber(row.tax_rate);
+  const channelFee = toNumber(row.channel_fee);
+
+  const discounted_revenue = round2(flow * discountFactor);
+  const billableRaw = discounted_revenue - voucher - noWorry - refund - test - welfare;
+  const shareRaw = billableRaw * (shareRate / 100);
+  const settlementRaw = shareRaw - channelFee - shareRaw * (taxRate / 100);
+
+  return {
+    discounted_revenue,
+    billable_amount: round2(billableRaw),
+    share_amount: round2(shareRaw),
+    settlement_amount: round2(settlementRaw),
+    share_rate: shareRate,
+    tax_rate: taxRate
+  };
 }
 
 export function formatMoney(value: NumericLike) {

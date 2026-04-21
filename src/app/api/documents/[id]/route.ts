@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { ReconciliationPayload } from "@/types/reconciliation";
-import { calculateRow } from "@/lib/reconciliation-formulas";
-import { calculateRdRow } from "@/lib/rd-reconciliation-formulas";
+import { calculateRdLegacyRow, calculateRow } from "@/lib/reconciliation-formulas";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -54,7 +53,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (oldItemsError) throw new Error(oldItemsError.message);
 
     const payload = body.items.map((item, idx) => {
-      const calculated = body.document.type === "rd" ? calculateRdRow(item) : calculateRow(item);
+      const calculated = body.document.type === "rd" ? calculateRdLegacyRow(item) : calculateRow(item);
       return {
         ...item,
         ...calculated,

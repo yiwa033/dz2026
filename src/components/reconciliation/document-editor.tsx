@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,8 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { calculateRow, calculateSummary, formatMoney } from "@/lib/reconciliation-formulas";
-import { calculateRdRow } from "@/lib/rd-reconciliation-formulas";
+import { calculateRdLegacyRow, calculateRow, calculateSummary, formatMoney } from "@/lib/reconciliation-formulas";
 import { DocumentType, ReconciliationPayload } from "@/types/reconciliation";
 
 const itemSchema = z.object({
@@ -84,16 +83,30 @@ export function DocumentEditor({
   const items = form.watch("items");
   const totals = useMemo(() => calculateSummary(items), [items]);
 
-  const recalc = (index: number) => {
-    const row = form.getValues(`items.${index}`);
-    const calc = type === "rd" ? calculateRdRow(row) : calculateRow(row);
-    form.setValue(`items.${index}.discounted_revenue`, calc.discounted_revenue);
-    form.setValue(`items.${index}.billable_amount`, calc.billable_amount);
-    form.setValue(`items.${index}.share_amount`, calc.share_amount);
-    form.setValue(`items.${index}.settlement_amount`, calc.settlement_amount);
-    form.setValue(`items.${index}.share_rate`, calc.share_rate);
-    form.setValue(`items.${index}.tax_rate`, calc.tax_rate);
-  };
+  useEffect(() => {
+    items.forEach((row, index) => {
+      const calc = type === "rd" ? calculateRdLegacyRow(row) : calculateRow(row);
+      const current = form.getValues(`items.${index}`);
+      if (Number(current.discounted_revenue) !== calc.discounted_revenue) {
+        form.setValue(`items.${index}.discounted_revenue`, calc.discounted_revenue);
+      }
+      if (Number(current.billable_amount) !== calc.billable_amount) {
+        form.setValue(`items.${index}.billable_amount`, calc.billable_amount);
+      }
+      if (Number(current.share_amount) !== calc.share_amount) {
+        form.setValue(`items.${index}.share_amount`, calc.share_amount);
+      }
+      if (Number(current.settlement_amount) !== calc.settlement_amount) {
+        form.setValue(`items.${index}.settlement_amount`, calc.settlement_amount);
+      }
+      if (Number(current.share_rate) !== calc.share_rate) {
+        form.setValue(`items.${index}.share_rate`, calc.share_rate);
+      }
+      if (Number(current.tax_rate) !== calc.tax_rate) {
+        form.setValue(`items.${index}.tax_rate`, calc.tax_rate);
+      }
+    });
+  }, [items, type, form]);
 
   const listHref = type === "rd" ? "/rd-reconciliation" : "/channel-reconciliation";
 
@@ -164,8 +177,8 @@ export function DocumentEditor({
       </Card>
 
       <Card className="p-3">
-        <div className="overflow-x-auto">
-          <table className="min-w-[1800px] border-collapse text-xs">
+        <div className="w-full overflow-x-auto">
+          <table className="min-w-[1400px] border-collapse text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="bg-slate-50">
               {[
@@ -223,8 +236,7 @@ export function DocumentEditor({
                         className="text-right"
                         readOnly={readOnly}
                         {...form.register(`items.${index}.${name as keyof (typeof items)[number]}` as const, {
-                          valueAsNumber: true,
-                          onChange: () => recalc(index)
+                          valueAsNumber: true
                         })}
                       />
                     </td>

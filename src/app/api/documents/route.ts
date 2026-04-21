@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { ReconciliationPayload } from "@/types/reconciliation";
-import { calculateRow } from "@/lib/reconciliation-formulas";
-import { calculateRdRow } from "@/lib/rd-reconciliation-formulas";
+import { calculateRdLegacyRow, calculateRow } from "@/lib/reconciliation-formulas";
 
 type DocRow = { id: string; [key: string]: any };
 type ItemAggRow = { document_id: string; settlement_amount: number | string | null };
@@ -126,7 +125,7 @@ export async function POST(req: NextRequest) {
     if (docError || !doc) throw new Error(docError?.message || "新建主表失败");
 
     const payload = body.items.map((item, idx) => {
-      const calculated = body.document.type === "rd" ? calculateRdRow(item) : calculateRow(item);
+      const calculated = body.document.type === "rd" ? calculateRdLegacyRow(item) : calculateRow(item);
       return {
         ...item,
         ...calculated,
