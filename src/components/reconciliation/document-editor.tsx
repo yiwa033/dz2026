@@ -164,10 +164,22 @@ export function DocumentEditor({
           <div className="text-sm font-semibold text-slate-700">1）公共信息</div>
         </div>
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          <Input placeholder="结算月份（如：2025年9月）" {...form.register("statement_month")} />
-          <Input placeholder="合作方" {...form.register("partner_name")} />
-          <Input className="md:col-span-2" placeholder="对账标题（渠道/公司简称）" {...form.register("title")} />
-          <Input className="md:col-span-2" placeholder="备注" {...form.register("remark")} />
+          <div className="space-y-1 md:col-span-2">
+            <div className="text-xs text-slate-600">渠道/公司简称 *</div>
+            <Input placeholder="如：广州触点互联网科技有限公司" {...form.register("title")} />
+          </div>
+          <div className="space-y-1 md:col-span-2">
+            <div className="text-xs text-slate-600">合作方</div>
+            <Input placeholder="可选" {...form.register("partner_name")} />
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs text-slate-600">结算周期（月/份）</div>
+            <Input placeholder="----年--月" {...form.register("statement_month")} />
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs text-slate-600">通道费率（%）整单共用</div>
+            <Input type="number" step="0.01" defaultValue={0} />
+          </div>
         </div>
       </Card>
 
@@ -318,7 +330,7 @@ export function DocumentEditor({
         <div className="mb-2 text-sm font-semibold text-slate-700">备注与其它</div>
         <Input placeholder="备注" {...form.register("remark")} />
       </Card>
-      <div className="flex items-center justify-between px-1 pb-1">
+      <div className="flex items-center justify-between rounded-sm border border-slate-200 bg-white px-3 py-2">
         <div className="text-sm font-semibold text-slate-700">预计结算金额 ¥{formatMoney(totals.settlement_amount)}</div>
         <div className="flex gap-2">
           <Link href={listHref}>
