@@ -42,7 +42,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { error: docError } = await supabaseAdmin
       .from("reconciliation_documents")
-      .update(body.document)
+      .update(body.document as any)
       .eq("id", id);
     if (docError) throw new Error(docError.message);
 
@@ -61,7 +61,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         sort_order: idx + 1
       };
     });
-    const { error: itemError } = await supabaseAdmin.from("reconciliation_items").insert(payload);
+    const { error: itemError } = await supabaseAdmin.from("reconciliation_items").insert(payload as any);
     if (itemError) throw new Error(itemError.message);
 
     return NextResponse.json({
