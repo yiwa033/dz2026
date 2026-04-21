@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-let cachedClient: ReturnType<typeof createClient> | null = null;
-let cachedAdmin: ReturnType<typeof createClient> | null = null;
+type LooseSupabaseClient = any;
+
+let cachedClient: LooseSupabaseClient | null = null;
+let cachedAdmin: LooseSupabaseClient | null = null;
 
 function getEnv(name: string) {
   const value = process.env[name];
@@ -31,7 +33,7 @@ function getSupabaseAdmin() {
   return cachedAdmin;
 }
 
-function createLazyClient(getter: () => ReturnType<typeof createClient>) {
+function createLazyClient(getter: () => LooseSupabaseClient): LooseSupabaseClient {
   return new Proxy(
     {},
     {
@@ -41,8 +43,8 @@ function createLazyClient(getter: () => ReturnType<typeof createClient>) {
         return typeof value === "function" ? value.bind(client) : value;
       }
     }
-  ) as ReturnType<typeof createClient>;
+  ) as LooseSupabaseClient;
 }
 
-export const supabaseClient = createLazyClient(getSupabaseClient);
-export const supabaseAdmin = createLazyClient(getSupabaseAdmin);
+export const supabaseClient: LooseSupabaseClient = createLazyClient(getSupabaseClient);
+export const supabaseAdmin: LooseSupabaseClient = createLazyClient(getSupabaseAdmin);
