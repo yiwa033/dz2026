@@ -3,6 +3,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { ReconciliationPayload } from "@/types/reconciliation";
 import { calculateRow } from "@/lib/reconciliation-calculator";
 
+type DocRow = { id: string; [key: string]: any };
+type ItemAggRow = { document_id: string; settlement_amount: number | string | null };
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -45,7 +48,7 @@ export async function GET(req: NextRequest) {
       throw new Error(countError?.message || docsError?.message || "查询失败");
     }
 
-    const ids = (docs ?? []).map((doc) => doc.id);
+    const ids = ((docs ?? []) as DocRow[]).map((doc: DocRow) => doc.id);
     let itemsMap = new Map<string, { itemCount: number; settlementTotal: number }>();
     if (ids.length) {
       const { data: items, error: itemsError } = await supabaseAdmin
@@ -53,7 +56,7 @@ export async function GET(req: NextRequest) {
         .select("document_id, settlement_amount")
         .in("document_id", ids);
       if (itemsError) throw new Error(itemsError.message);
-      itemsMap = (items ?? []).reduce((map, item) => {
+      itemsMap = ((items ?? []) as ItemAggRow[]).reduce((map, item: ItemAggRow) => {
         const current = map.get(item.document_id) ?? { itemCount: 0, settlementTotal: 0 };
         current.itemCount += 1;
         current.settlementTotal += Number(item.settlement_amount ?? 0);
@@ -62,7 +65,7 @@ export async function GET(req: NextRequest) {
       }, new Map<string, { itemCount: number; settlementTotal: number }>());
     }
 
-    const list = (docs ?? []).map((doc) => ({
+    const list = ((docs ?? []) as DocRow[]).map((doc: DocRow) => ({
       ...doc,
       itemCount: itemsMap.get(doc.id)?.itemCount ?? 0,
       settlementTotal: Number((itemsMap.get(doc.id)?.settlementTotal ?? 0).toFixed(2))
