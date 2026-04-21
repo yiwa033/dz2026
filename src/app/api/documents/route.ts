@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { ReconciliationPayload } from "@/types/reconciliation";
-import { calculateRow } from "@/lib/reconciliation-calculator";
+import { calculateRow } from "@/lib/reconciliation-formulas";
 
 type DocRow = { id: string; [key: string]: any };
 type ItemAggRow = { document_id: string; settlement_amount: number | string | null };

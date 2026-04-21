@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { calculateRow, calculateTotals, formatMoney } from "@/lib/reconciliation-calculator";
+import { calculateRow, calculateSummary, formatMoney } from "@/lib/reconciliation-formulas";
 import { DocumentType, ReconciliationPayload } from "@/types/reconciliation";
 
 const itemSchema = z.object({
@@ -81,7 +81,7 @@ export function DocumentEditor({
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
 
   const items = form.watch("items");
-  const totals = useMemo(() => calculateTotals(items), [items]);
+  const totals = useMemo(() => calculateSummary(items), [items]);
 
   const recalc = (index: number) => {
     const row = form.getValues(`items.${index}`);

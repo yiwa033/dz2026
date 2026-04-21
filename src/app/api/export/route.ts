@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { supabaseAdmin } from "@/lib/supabase";
-import { calculateTotals, formatMoney } from "@/lib/reconciliation-calculator";
+import { calculateSummary, formatMoney } from "@/lib/reconciliation-formulas";
 
 type ExportItemRow = {
   game_name: string;
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       分成额: Number(i.share_amount).toFixed(2),
       结算额: Number(i.settlement_amount).toFixed(2)
     }));
-    const totals = calculateTotals((items ?? []) as any);
+    const totals = calculateSummary((items ?? []) as any);
     detailRows.push({
       游戏名称: "汇总",
       后台流水: formatMoney(totals.backend_revenue),

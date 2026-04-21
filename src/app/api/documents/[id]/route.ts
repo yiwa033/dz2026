@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { ReconciliationPayload } from "@/types/reconciliation";
-import { calculateRow } from "@/lib/reconciliation-calculator";
+import { calculateRow } from "@/lib/reconciliation-formulas";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
