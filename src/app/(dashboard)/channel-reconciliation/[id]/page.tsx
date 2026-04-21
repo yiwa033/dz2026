@@ -6,6 +6,12 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const { data: doc } = await supabaseAdmin.from("reconciliation_documents").select("*").eq("id", id).single();
   if (!doc) return notFound();
+  const document = doc as {
+    title: string;
+    statement_month: string;
+    partner_name: string;
+    remark: string | null;
+  };
   const { data: items } = await supabaseAdmin
     .from("reconciliation_items")
     .select("*")
@@ -16,10 +22,10 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
       type="channel"
       documentId={id}
       initialData={{
-        title: doc.title,
-        statement_month: doc.statement_month,
-        partner_name: doc.partner_name,
-        remark: doc.remark ?? "",
+        title: document.title,
+        statement_month: document.statement_month,
+        partner_name: document.partner_name,
+        remark: document.remark ?? "",
         items: (items ?? []) as any
       }}
     />
