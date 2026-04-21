@@ -43,15 +43,15 @@ type FormValues = z.infer<typeof formSchema>;
 const emptyRow = {
   game_name: "",
   backend_revenue: 0,
-  discount_rate: 0,
+  discount_rate: 1,
   discounted_revenue: 0,
   voucher_amount: 0,
   free_trial_amount: 0,
   refund_amount: 0,
   test_fee: 0,
   welfare_coin: 0,
-  share_rate: 0,
-  tax_rate: 0,
+  share_rate: 30,
+  tax_rate: 5,
   channel_fee: 0,
   billable_amount: 0,
   share_amount: 0,
@@ -149,7 +149,7 @@ export function DocumentEditor({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
       <Card className="p-3">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-sm font-semibold">{type === "rd" ? "研发对账单" : "渠道对账单"}</div>
+          <div className="text-sm font-semibold">1）公共信息</div>
           <div className="flex gap-2">
             <Button type="submit">保存</Button>
             {documentId ? (
@@ -168,15 +168,24 @@ export function DocumentEditor({
             </Link>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-2">
-          <Input placeholder="对账单标题" {...form.register("title")} />
-          <Input placeholder="账期，例如 2026-04" {...form.register("statement_month")} />
-          <Input placeholder="合作方名称" {...form.register("partner_name")} />
-          <Input placeholder="备注" {...form.register("remark")} />
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <Input placeholder="结算月份（如：2025年9月）" {...form.register("statement_month")} />
+          <Input placeholder="合作方" {...form.register("partner_name")} />
+          <Input className="md:col-span-2" placeholder="对账标题（渠道/公司简称）" {...form.register("title")} />
+          <Input className="md:col-span-2" placeholder="备注" {...form.register("remark")} />
         </div>
       </Card>
 
       <Card className="p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-sm font-semibold">2）游戏明细</div>
+          <Button type="button" variant="outline" onClick={() => append({ ...emptyRow, sort_order: fields.length + 1 })}>
+            + 新增一行游戏
+          </Button>
+        </div>
+        <div className="mb-2 text-xs text-slate-500">
+          折扣系数仅填数字（如 0.005 表示 0.05 折）。结算与导出均以「折算后总流水」为准。
+        </div>
         <div className="w-full overflow-x-auto">
           <table className="min-w-[1400px] border-collapse text-xs">
           <thead className="sticky top-0 z-10">
@@ -288,15 +297,28 @@ export function DocumentEditor({
           </tfoot>
         </table>
         </div>
-        <div className="mt-2 flex gap-2">
-          <Button type="button" variant="outline" onClick={() => append({ ...emptyRow, sort_order: fields.length + 1 })}>
-            新增明细行
-          </Button>
+      </Card>
+      <Card className="p-3">
+        <div className="mb-2 text-sm font-semibold">3）汇总</div>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
+          <div className="rounded border border-slate-200 bg-slate-50 p-2">
+            <div className="text-[11px] text-slate-500">原始后台流水合计</div>
+            <div className="text-base font-semibold text-emerald-700">{formatMoney(totals.backend_revenue)}</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2">
+            <div className="text-[11px] text-slate-500">折算后总流水（结算用）</div>
+            <div className="text-base font-semibold text-emerald-700">{formatMoney(totals.discounted_revenue)}</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2">
+            <div className="text-[11px] text-slate-500">总代金券</div>
+            <div className="text-base font-semibold text-emerald-700">{formatMoney(items.reduce((s, i) => s + Number(i.voucher_amount || 0), 0))}</div>
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 p-2">
+            <div className="text-[11px] text-slate-500">总结算金额</div>
+            <div className="text-base font-semibold text-emerald-700">{formatMoney(totals.settlement_amount)}</div>
+          </div>
         </div>
       </Card>
-      <div className="text-xs text-slate-500">
-        提示：折扣系数、分成% 和税率% 支持输入 50 或 0.5，系统会自动标准化；金额字段统一保留 2 位小数。
-      </div>
     </form>
   );
 }
