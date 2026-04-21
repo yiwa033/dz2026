@@ -6,6 +6,14 @@ import { calculateRow } from "@/lib/reconciliation-calculator";
 type DocRow = { id: string; [key: string]: any };
 type ItemAggRow = { document_id: string; settlement_amount: number | string | null };
 
+function hasSupabaseEnv() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -16,6 +24,19 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(searchParams.get("pageSize") ?? "10");
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
+
+    if (!hasSupabaseEnv()) {
+      return NextResponse.json({
+        success: true,
+        message: "Supabase 环境变量未配置，返回空数据。",
+        data: {
+          list: [],
+          total: 0,
+          page,
+          pageSize
+        }
+      });
+    }
 
     let countQuery = supabaseAdmin
       .from("reconciliation_documents")
