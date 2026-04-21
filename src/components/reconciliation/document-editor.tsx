@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { calculateRow, calculateSummary, formatMoney } from "@/lib/reconciliation-formulas";
+import { calculateRdRow } from "@/lib/rd-reconciliation-formulas";
 import { DocumentType, ReconciliationPayload } from "@/types/reconciliation";
 
 const itemSchema = z.object({
@@ -85,7 +86,7 @@ export function DocumentEditor({
 
   const recalc = (index: number) => {
     const row = form.getValues(`items.${index}`);
-    const calc = calculateRow(row);
+    const calc = type === "rd" ? calculateRdRow(row) : calculateRow(row);
     form.setValue(`items.${index}.discounted_revenue`, calc.discounted_revenue);
     form.setValue(`items.${index}.billable_amount`, calc.billable_amount);
     form.setValue(`items.${index}.share_amount`, calc.share_amount);
@@ -223,7 +224,7 @@ export function DocumentEditor({
                         readOnly={readOnly}
                         {...form.register(`items.${index}.${name as keyof (typeof items)[number]}` as const, {
                           valueAsNumber: true,
-                          onBlur: () => recalc(index)
+                          onChange: () => recalc(index)
                         })}
                       />
                     </td>
