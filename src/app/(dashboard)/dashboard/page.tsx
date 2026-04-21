@@ -48,7 +48,9 @@ export default async function DashboardPage() {
 
   const rdIds = new Set(((rdDocIds ?? []) as DocumentId[]).map((d) => d.id));
   const channelIds = new Set(((channelDocIds ?? []) as DocumentId[]).map((d) => d.id));
-  const currentMonthItems = ((latestItems ?? []) as ItemSummary[]).filter((i) => i.document_id);
+  const currentMonthItems = ((latestItems ?? []) as ItemSummary[]).filter(
+    (i): i is ItemSummary & { document_id: string } => Boolean(i.document_id)
+  );
 
   const rdTotal = currentMonthItems
     .filter((i) => rdIds.has(i.document_id))
