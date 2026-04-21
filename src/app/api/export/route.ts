@@ -3,6 +3,24 @@ import * as XLSX from "xlsx";
 import { supabaseAdmin } from "@/lib/supabase";
 import { calculateTotals, formatMoney } from "@/lib/reconciliation-calculator";
 
+type ExportItemRow = {
+  game_name: string;
+  backend_revenue: number | string | null;
+  discount_rate: number | string | null;
+  discounted_revenue: number | string | null;
+  voucher_amount: number | string | null;
+  free_trial_amount: number | string | null;
+  refund_amount: number | string | null;
+  test_fee: number | string | null;
+  welfare_coin: number | string | null;
+  share_rate: number | string | null;
+  tax_rate: number | string | null;
+  channel_fee: number | string | null;
+  billable_amount: number | string | null;
+  share_amount: number | string | null;
+  settlement_amount: number | string | null;
+};
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -25,7 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "未找到对账单", data: null }, { status: 404 });
     }
 
-    const detailRows = (items ?? []).map((i) => ({
+    const detailRows = ((items ?? []) as ExportItemRow[]).map((i: ExportItemRow) => ({
       游戏名称: i.game_name,
       后台流水: Number(i.backend_revenue).toFixed(2),
       折扣系数: i.discount_rate,
