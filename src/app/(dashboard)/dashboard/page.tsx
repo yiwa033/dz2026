@@ -1,6 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { supabaseAdmin } from "@/lib/supabase";
 
+type ItemSummary = {
+  settlement_amount: number | string | null;
+  discounted_revenue: number | string | null;
+  document_id: string | null;
+};
+
+type DocumentId = { id: string };
+
+type RecentDocument = {
+  id: string;
+  type: "rd" | "channel";
+  title: string;
+  statement_month: string;
+  partner_name: string;
+  created_at: string;
+};
+
 export default async function DashboardPage() {
   const start = new Date();
   start.setDate(1);
@@ -29,9 +46,9 @@ export default async function DashboardPage() {
     .eq("type", "channel")
     .gte("created_at", start.toISOString());
 
-  const rdIds = new Set((rdDocIds ?? []).map((d) => d.id));
-  const channelIds = new Set((channelDocIds ?? []).map((d) => d.id));
-  const currentMonthItems = (latestItems ?? []).filter((i) => i.document_id);
+  const rdIds = new Set(((rdDocIds ?? []) as DocumentId[]).map((d) => d.id));
+  const channelIds = new Set(((channelDocIds ?? []) as DocumentId[]).map((d) => d.id));
+  const currentMonthItems = ((latestItems ?? []) as ItemSummary[]).filter((i) => i.document_id);
 
   const rdTotal = currentMonthItems
     .filter((i) => rdIds.has(i.document_id))
@@ -40,7 +57,8 @@ export default async function DashboardPage() {
     .filter((i) => channelIds.has(i.document_id))
     .reduce((sum, i) => sum + Number(i.settlement_amount ?? 0), 0);
   const totalFlow = currentMonthItems.reduce((sum, i) => sum + Number(i.discounted_revenue ?? 0), 0);
-  const pendingCount = (latestDocs ?? []).length;
+  const typedLatestDocs = (latestDocs ?? []) as RecentDocument[];
+  const pendingCount = typedLatestDocs.length;
 
   return (
     <div className="space-y-3">
@@ -73,7 +91,7 @@ export default async function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {(latestDocs ?? []).map((doc) => (
+            {typedLatestDocs.map((doc) => (
               <tr key={doc.id}>
                 <td className="border border-slate-200 px-2 py-2">
                   {doc.type === "rd" ? "研发对账" : "渠道对账"}
